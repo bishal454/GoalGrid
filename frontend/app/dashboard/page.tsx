@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import FloatingSettings from "../../components/FloatingSettings";
+import TacticalFormationGrid from "../../components/TacticalFormationGrid";
 import { getCurrentUser, logoutUser } from "../../lib/auth";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -550,6 +551,7 @@ export default function DashboardPage() {
   const [analysisAIError, setAnalysisAIError] = useState<string | null>(null);
   const [isCustomAnalysisPrompt, setIsCustomAnalysisPrompt] = useState<boolean>(false);
   const [customAnalysisPromptQuery, setCustomAnalysisPromptQuery] = useState<string>("");
+  const [tacticalViewMode, setTacticalViewMode] = useState<'manual' | 'ai'>('manual');
 
   // Agent chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -2444,6 +2446,62 @@ export default function DashboardPage() {
     );
   };
 
+  // Extract tactical insights from AI analysis
+  const extractTacticalAnalysis = (aiData: any) => {
+    if (!aiData || !aiData.report_markdown) {
+      return {
+        homeFormation: analysisMatchDetail?.homeTeam?.formation,
+        awayFormation: analysisMatchDetail?.awayTeam?.formation,
+        homeStrategy: "",
+        awayStrategy: "",
+        tacticalNotes: ""
+      };
+    }
+
+    const report = aiData.report_markdown;
+    
+    // Extract strategic insights from the report
+    let homeStrategy = "";
+    let awayStrategy = "";
+    let tacticalNotes = "";
+
+    // Look for formation mentions in the report
+    const formationRegex = /(\d-\d-\d)/g;
+    const formations = report.match(formationRegex) || [];
+
+    // Extract strategic keywords
+    if (report.toLowerCase().includes("high press") || report.toLowerCase().includes("pressing")) {
+      homeStrategy = "Aggressive Pressing";
+    } else if (report.toLowerCase().includes("low block") || report.toLowerCase().includes("defensive")) {
+      homeStrategy = "Defensive Block";
+    } else if (report.toLowerCase().includes("possession") || report.toLowerCase().includes("control")) {
+      homeStrategy = "Possession Dominance";
+    }
+
+    if (report.toLowerCase().includes("counter") || report.toLowerCase().includes("transitions")) {
+      awayStrategy = "Counter Attack";
+    } else if (report.toLowerCase().includes("compact") || report.toLowerCase().includes("organized")) {
+      awayStrategy = "Organized Defense";
+    } else if (report.toLowerCase().includes("wide play") || report.toLowerCase().includes("wings")) {
+      awayStrategy = "Wide Attack";
+    }
+
+    // Extract a brief tactical note
+    const tacticalSections = report.split("###");
+    if (tacticalSections.length > 2) {
+      const keySection = tacticalSections[2].split("\n")[0];
+      tacticalNotes = keySection.substring(0, 80) + "...";
+    }
+
+    return {
+      homeFormation: analysisMatchDetail?.homeTeam?.formation,
+      awayFormation: analysisMatchDetail?.awayTeam?.formation,
+      homeStrategy,
+      awayStrategy,
+      tacticalNotes
+    };
+  };
+
   const renderAnalysisMarkdown = (text: string) => {
     if (!text) return null;
     
@@ -2601,64 +2659,51 @@ export default function DashboardPage() {
           <>
             {/* Left Column: Match Stats & Pitch Lineup (8 cols) */}
             <div className="xl:col-span-7 flex flex-col gap-6">
-              {/* Pitch Visualizer */}
-              <div className="glass-card p-5 border border-zinc-800 bg-zinc-950/20 rounded-2xl flex flex-col gap-4 text-center">
+              {/* Pitch Visualizer with Manual/AI Toggle */}
+              <div className="glass-card p-5 border border-zinc-800 bg-zinc-950/20 rounded-2xl flex flex-col gap-4">
                 <div className="flex justify-between items-center">
                   <h4 className="text-xs font-extrabold uppercase tracking-wider text-emerald-400 font-mono">
                     {isFuture ? "🔮 Expected Tactical Formations" : "🏟️ Tactical Formations"}
                   </h4>
-                  <div className="flex gap-4 text-[10px] font-mono font-bold">
-                    <span className="text-emerald-400">{activeMatchDetail.homeTeam?.name}: {activeMatchDetail.homeTeam?.formation || "TBD"}</span>
-                    <span className="text-violet-400">{activeMatchDetail.awayTeam?.name}: {activeMatchDetail.awayTeam?.formation || "TBD"}</span>
+                  
+                  {/* Manual/AI Toggle */}
+                  <div className="flex items-center gap-2 bg-zinc-900/50 border border-zinc-800 rounded-lg p-0.5">
+                    <button
+                      onClick={() => setTacticalViewMode('manual')}
+                      className={`px-3 py-1 text-[10px] font-mono font-bold uppercase tracking-wider rounded transition-colors ${
+                        tacticalViewMode === 'manual'
+                          ? 'bg-emerald-600 text-white'
+                          : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                    >
+                      📋 Manual
+                    </button>
+                    <button
+                      onClick={() => setTacticalViewMode('ai')}
+                      className={`px-3 py-1 text-[10px] font-mono font-bold uppercase tracking-wider rounded transition-colors ${
+                        tacticalViewMode === 'ai'
+                          ? 'bg-violet-600 text-white'
+                          : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                    >
+                      🤖 AI
+                    </button>
                   </div>
                 </div>
 
-                {/* CSS Soccer Field */}
-                <div className="w-full aspect-[4/5] bg-emerald-950/20 border-2 border-emerald-500/20 rounded-xl relative p-4 overflow-hidden shadow-inner flex flex-col justify-between">
-                  {/* Field Markings */}
-                  <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-emerald-500/10 -translate-y-1/2" />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 border border-emerald-500/10 rounded-full" />
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-44 h-16 border-b border-x border-emerald-500/10" />
-                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-44 h-16 border-t border-x border-emerald-500/10" />
-                  
-                  {/* Home Team Lineup */}
-                  {activeMatchDetail.homeTeam?.lineup?.map((p: any, idx: number) => {
-                    const coords = getPlayerCoordinates(p.position, idx, true);
-                    return (
-                      <div
-                        key={p.id || idx}
-                        className="absolute group z-10 -translate-x-1/2 -translate-y-1/2 cursor-default animate-fadeIn"
-                        style={{ left: `${coords.x}%`, top: `${coords.y}%` }}
-                      >
-                        <div className="w-6 h-6 rounded-full bg-emerald-500 border border-emerald-300 flex items-center justify-center text-[10px] font-black text-black shadow-lg">
-                          {p.shirtNumber || idx + 1}
-                        </div>
-                        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 bg-zinc-950/90 border border-zinc-800 text-[8px] text-zinc-300 rounded px-1.5 py-0.5 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none shadow-md font-mono">
-                          {p.name} ({p.position})
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {/* Away Team Lineup */}
-                  {activeMatchDetail.awayTeam?.lineup?.map((p: any, idx: number) => {
-                    const coords = getPlayerCoordinates(p.position, idx, false);
-                    return (
-                      <div
-                        key={p.id || idx}
-                        className="absolute group z-10 -translate-x-1/2 -translate-y-1/2 cursor-default animate-fadeIn"
-                        style={{ left: `${coords.x}%`, top: `${coords.y}%` }}
-                      >
-                        <div className="w-6 h-6 rounded-full bg-violet-600 border border-violet-400 flex items-center justify-center text-[10px] font-black text-white shadow-lg">
-                          {p.shirtNumber || idx + 1}
-                        </div>
-                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 bg-zinc-950/90 border border-zinc-800 text-[8px] text-zinc-300 rounded px-1.5 py-0.5 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none shadow-md font-mono">
-                          {p.name} ({p.position})
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                {/* Tactical Formation Grid Component */}
+                {activeMatchDetail.homeTeam && activeMatchDetail.awayTeam ? (
+                  <TacticalFormationGrid
+                    homeTeam={activeMatchDetail.homeTeam}
+                    awayTeam={activeMatchDetail.awayTeam}
+                    isAIMode={tacticalViewMode === 'ai'}
+                    aiAnalysis={tacticalViewMode === 'ai' ? extractTacticalAnalysis(analysisAIData) : undefined}
+                  />
+                ) : (
+                  <div className="w-full aspect-[4/5] bg-emerald-950/20 border-2 border-emerald-500/20 rounded-xl flex items-center justify-center text-zinc-500">
+                    <p className="text-sm">Loading formation data...</p>
+                  </div>
+                )}
               </div>
 
               {/* Match Stats Comparison */}
