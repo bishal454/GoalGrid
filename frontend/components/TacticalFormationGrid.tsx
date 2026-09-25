@@ -101,16 +101,14 @@ const TacticalFormationGrid: React.FC<FormationGridProps> = ({
   const displayHomeFormation = isAIMode && aiAnalysis?.homeFormation ? aiAnalysis.homeFormation : homeTeam.formation;
   const displayAwayFormation = isAIMode && aiAnalysis?.awayFormation ? aiAnalysis.awayFormation : awayTeam.formation;
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const homePositioned = useMemo(
     () => getPlayerPositionInFormation(homeTeam.lineup, displayHomeFormation, true),
-    [homeTeam, displayHomeFormation]
+    [homeTeam.lineup, displayHomeFormation, getPlayerPositionInFormation]
   );
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const awayPositioned = useMemo(
     () => getPlayerPositionInFormation(awayTeam.lineup, displayAwayFormation, false),
-    [awayTeam, displayAwayFormation]
+    [awayTeam.lineup, displayAwayFormation, getPlayerPositionInFormation]
   );
 
   return (
