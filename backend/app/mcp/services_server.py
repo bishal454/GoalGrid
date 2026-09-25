@@ -1,8 +1,6 @@
 import json
 import sys
 import os
-import time
-import hashlib
 import re
 import urllib.parse
 import httpx
@@ -322,410 +320,120 @@ def query_airbnb(stadium_name: str, lat: float, lng: float, check_in: str, check
         sys.stderr.flush()
         return []
 
-def query_hotelbeds(lat: float, lng: float, check_in: str, check_out: str, max_price: float = None) -> list:
-    api_key = os.environ.get("HBX_API_KEY")
-    secret = os.environ.get("HBX_SECRET")
-    env = os.environ.get("HBX_ENV", "test").strip().lower()
-
-    if not api_key or not secret:
-        return []
-
-    base_url = "https://api.hotelbeds.com" if env == "prod" else "https://api.test.hotelbeds.com"
-    endpoint = f"{base_url}/hotel-api/1.0/hotels"
-
-    timestamp = str(int(time.time()))
-    signature = hashlib.sha256((api_key + secret + timestamp).encode("utf-8")).hexdigest()
-
-    headers = {
-        "Api-key": api_key,
-        "X-Signature": signature,
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-    }
-
-    if not check_in or not check_out:
-        from datetime import datetime, timedelta
-        dt_in = datetime.utcnow() + timedelta(days=30)
-        dt_out = dt_in + timedelta(days=1)
-        check_in = dt_in.strftime("%Y-%m-%d")
-        check_out = dt_out.strftime("%Y-%m-%d")
-
-    payload = {
-        "stay": {
-            "checkIn": check_in,
-            "checkOut": check_out
-        },
-        "occupancies": [
-            {
-                "rooms": 1,
-                "adults": 1,
-                "children": 0
-            }
-        ],
-        "geolocation": {
-            "latitude": lat,
-            "longitude": lng,
-            "radius": 5,
-            "unit": "km"
-        }
-    }
-
+def query_osm_hotels(lat: float, lng: float, max_price: float = None, accommodation_type: str = "hotel") -> list:
+    """Query Overpass API for hotels near a location."""
+    overpass_url = os.getenv("OSM_OVERPASS_URL", "https://overpass-api.de/api/interpreter")
+    radius = 5000
+    
+    tag_filter = '"tourism"="hotel"'
+    if accommodation_type == "hostel":
+        tag_filter = '"tourism"="hostel"'
+    
+    # Build Overpass QL query
+    query = f'[out:json][timeout:25];nwr[{tag_filter}](around:{radius},{lat},{lng});out;'
+    
+    results = []
     try:
-        with httpx.Client() as client:
-            resp = client.post(endpoint, json=payload, headers=headers, timeout=10.0)
+        with httpx.Client(timeout=20.0) as client:
+            resp = client.post(overpass_url, data={"data": query}, timeout=30.0, headers={"User-Agent": "OffsideAI/1.0"})
             if resp.status_code != 200:
-                sys.stderr.write(f"Hotelbeds API error {resp.status_code}: {resp.text}\n")
+                sys.stderr.write(f"Overpass status: {resp.status_code}\n")
                 sys.stderr.flush()
-                return []
-
+                return results
             data = resp.json()
-            hotels_data = data.get("hotels", {}).get("hotels", [])
-            results = []
-            for h in hotels_data:
-                name = h.get("name", "Unknown Hotel")
-                rating_stars = h.get("categoryCode", "3EST")
-                try:
-                    rating = float(rating_stars.replace("EST", "")) if "EST" in rating_stars else 4.0
-                except ValueError:
-                    rating = 4.0
-
-                lat_h = float(h.get("latitude")) if h.get("latitude") else lat
-                lng_h = float(h.get("longitude")) if h.get("longitude") else lng
-
+            for elem in data.get("elements", []):
+                tags_data = elem.get("tags", {})
+                lat_h = elem.get("lat", lat)
+                lng_h = elem.get("lon", lng)
+                name = tags_data.get("name", "Unknown Hotel")
+                stars = tags_data.get("stars", None)
+                addr = tags_data.get("addr:street", "")
+                city = tags_data.get("addr:city", "")
+                address = f"{addr}, {city}".strip(", ")
                 from math import radians, cos, sin, asin, sqrt
                 def haversine(lon1, lat1, lon2, lat2):
                     lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-                    dlon = lon2 - lon1
-                    dlat = lat2 - lat1
-                    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-                    c = 2 * asin(sqrt(a))
-                    r = 3956
-                    return round(c * r, 2)
-
+                    dlon = lon2 - lon1; dlat = lat2 - lat1
+                    a = sin(dlat/2)**2 + cos(lat1)*cos(lat2)*sin(dlon/2)**2
+                    return round(2*asin(sqrt(a))*3956, 2)
                 distance = haversine(lng, lat, lng_h, lat_h)
-
-                min_price = None
-                for room in h.get("rooms", []):
-                    for rate in room.get("rates", []):
-                        net = float(rate.get("net", 999))
-                        if min_price is None or net < min_price:
-                            min_price = net
-
-                amenities = []
-                for facility in h.get("facilities", []):
-                    facility_desc = facility.get("description", "").lower()
-                    if "wifi" in facility_desc or "internet" in facility_desc:
-                        amenities.append("WiFi")
-                    if "air conditioning" in facility_desc or "ac" in facility_desc:
-                        amenities.append("AC")
-                    if "pool" in facility_desc or "swimming" in facility_desc:
-                        amenities.append("Pool")
-                    if "gym" in facility_desc or "fitness" in facility_desc:
-                        amenities.append("Gym")
-                    if "bar" in facility_desc or "pub" in facility_desc:
-                        amenities.append("Bar")
-                    if "breakfast" in facility_desc:
-                        amenities.append("Free Breakfast")
-
-                amenities = list(set(amenities))
-                if not amenities:
-                    amenities = ["WiFi"]
-
-                if min_price is None:
-                    min_price = 75.0
-
-                if max_price is not None and min_price > max_price:
-                    continue
-
-                results.append({
-                    "name": name,
-                    "type": "hotel",
-                    "price_usd": min_price,
-                    "rating": rating,
-                    "distance_miles": distance,
-                    "amenities": amenities,
-                    "provider": "Hotelbeds",
-                    "latitude": lat_h,
-                    "longitude": lng_h
-                })
+                amenities = ["WiFi"]
+                if stars: amenities.append(f"{stars}\u2605")
+                results.append({"name": name, "type": "hotel", "price_usd": 0, "rating": float(stars) if stars else 4.0, "distance_miles": round(distance, 2), "amenities": amenities, "provider": "OpenStreetMap", "latitude": lat_h, "longitude": lng_h, "address": address, "stars": stars})
+            results.sort(key=lambda x: x.get("distance_miles", 999))
             return results
     except Exception as exc:
-        sys.stderr.write(f"Hotelbeds query error: {exc}\n")
+        sys.stderr.write(f"Overpass query error: {exc}\n")
         sys.stderr.flush()
         return []
 
-def query_liteapi(lat: float, lng: float, check_in: str, check_out: str, max_price: float = None) -> list:
-    api_key = os.environ.get("LITEAPI_KEY")
-    if not api_key:
-        return []
 
-    is_sandbox = api_key.strip().startswith("sand_")
-    base_url = "https://sandbox-api.liteapi.travel" if is_sandbox else "https://api.liteapi.travel"
-    endpoint = f"{base_url}/v3.0/hotels/rates"
+def merge_osm_stays(osm_results: list) -> list:
+    """Return OSM results directly (no merge needed for single source)."""
+    return list(osm_results)
 
-    headers = {
-        "accept": "application/json",
-        "content-type": "application/json",
-        "X-API-Key": api_key.strip()
-    }
 
-    if not check_in or not check_out:
-        from datetime import datetime, timedelta
-        dt_in = datetime.utcnow() + timedelta(days=30)
-        dt_out = dt_in + timedelta(days=1)
-        check_in = dt_in.strftime("%Y-%m-%d")
-        check_out = dt_out.strftime("%Y-%m-%d")
-
-    payload = {
-        "checkin": check_in,
-        "checkout": check_out,
-        "currency": "USD",
-        "guestNationality": "US",
-        "occupancies": [
-            {
-                "adults": 1,
-                "children": []
-            }
-        ],
-        "latitude": lat,
-        "longitude": lng,
-        "radius": 5000 # in meters (5km)
-    }
-
-    try:
-        with httpx.Client() as client:
-            resp = client.post(endpoint, json=payload, headers=headers, timeout=10.0)
-            if resp.status_code != 200:
-                sys.stderr.write(f"LiteAPI returned status {resp.status_code}: {resp.text}\n")
-                sys.stderr.flush()
-                return []
-
-            data = resp.json()
-            hotels_list = data.get("data", [])
-            results = []
-
-            for item in hotels_list:
-                name = item.get("name", "Unknown Hotel")
-                lat_h = float(item.get("latitude")) if item.get("latitude") else lat
-                lng_h = float(item.get("longitude")) if item.get("longitude") else lng
-
-                from math import radians, cos, sin, asin, sqrt
-                def haversine(lon1, lat1, lon2, lat2):
-                    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-                    dlon = lon2 - lon1
-                    dlat = lat2 - lat1
-                    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-                    c = 2 * asin(sqrt(a))
-                    r = 3956
-                    return round(c * r, 2)
-
-                distance = haversine(lng, lat, lng_h, lat_h)
-
-                min_price = None
-                for room in item.get("rooms", []):
-                    for rate in room.get("rates", []):
-                        retail = float(rate.get("retailRate", {}).get("amount", 999))
-                        if min_price is None or retail < min_price:
-                            min_price = retail
-
-                if min_price is None:
-                    min_price = 85.0
-
-                rating = float(item.get("stars", 4.0))
-
-                amenities = []
-                facilities = item.get("facilities", [])
-                if not isinstance(facilities, list):
-                    facilities = []
-                for f in facilities:
-                    f_desc = str(f).lower()
-                    if "wifi" in f_desc or "internet" in f_desc:
-                        amenities.append("WiFi")
-                    if "ac" in f_desc or "air conditioning" in f_desc:
-                        amenities.append("AC")
-                    if "pool" in f_desc or "swimming" in f_desc:
-                        amenities.append("Pool")
-                    if "gym" in f_desc or "fitness" in f_desc:
-                        amenities.append("Gym")
-                    if "bar" in f_desc or "pub" in f_desc:
-                        amenities.append("Bar")
-                    if "breakfast" in f_desc:
-                        amenities.append("Free Breakfast")
-
-                amenities = list(set(amenities))
-                if not amenities:
-                    amenities = ["WiFi"]
-
-                if max_price is not None and min_price > max_price:
-                    continue
-
-                results.append({
-                    "name": name,
-                    "type": "hotel",
-                    "price_usd": min_price,
-                    "rating": rating,
-                    "distance_miles": distance,
-                    "amenities": amenities,
-                    "provider": "LiteAPI",
-                    "latitude": lat_h,
-                    "longitude": lng_h
-                })
-            return results
-    except Exception as exc:
-        sys.stderr.write(f"LiteAPI query error: {exc}\n")
-        sys.stderr.flush()
-        return []
-
-def merge_stays(hbx_results: list, lite_results: list) -> list:
-    merged = {}
-    for item in hbx_results:
-        norm_name = "".join(e for e in item["name"].lower() if e.isalnum())
-        merged[norm_name] = item
-
-    for item in lite_results:
-        norm_name = "".join(e for e in item["name"].lower() if e.isalnum())
-        if norm_name in merged:
-            existing = merged[norm_name]
-            if item["price_usd"] < existing["price_usd"]:
-                item["provider"] = "LiteAPI (Best Price)"
-                merged[norm_name] = item
-            else:
-                existing["provider"] = "Hotelbeds (Best Price)"
-        else:
-            merged[norm_name] = item
-
-    return list(merged.values())
-
-def fetch_google_directions(origin: str, destination: str, mode: str) -> list:
-    import os
+def fetch_osrm_directions(origin: str, destination: str, mode: str) -> list:
+    """Fetch directions from OSRM."""
     import sys
-    import re
     import math
-    import httpx
-
-    api_key = os.getenv("GOOGLE_MAPS_API_KEY") or os.getenv("GOOGLE_API_KEY")
-    if not api_key:
+    origin_lat, origin_lng = resolve_stadium_coords(origin)
+    dest_lat, dest_lng = resolve_stadium_coords(destination)
+    if origin_lat is None or dest_lat is None:
         return None
-
-    google_mode = "transit"
     if mode == "walking":
-        google_mode = "walking"
-    elif mode == "cab":
-        google_mode = "driving"
-
-    url = "https://maps.googleapis.com/maps/api/directions/json"
-    params = {
-        "origin": origin,
-        "destination": destination,
-        "mode": google_mode,
-        "key": api_key
-    }
-
-    if google_mode == "driving":
-        params["departure_time"] = "now"
-
+        profile = "foot"
+    else:
+        profile = "driving"
+    url = f"https://router.project-osrm.org/route/v1/{profile}/{origin_lng},{origin_lat};{dest_lng},{dest_lat}?overview=false"
     try:
-        with httpx.Client() as client:
-            resp = client.get(url, params=params, timeout=10.0)
+        with httpx.Client(timeout=15.0) as client:
+            resp = client.get(url, timeout=20.0)
             if resp.status_code != 200:
                 return None
             data = resp.json()
-            if data.get("status") != "OK":
+            if data.get("code") != "Ok":
                 return None
-
             routes = []
-            for r in data.get("routes", []):
-                leg = r["legs"][0]
-                duration_mins = int(math.ceil(leg["duration"]["value"] / 60.0))
-
-                if google_mode == "transit":
-                    fare_obj = r.get("fare")
-                    cost = float(fare_obj["value"]) if fare_obj else 2.50
-                elif google_mode == "driving":
-                    distance_miles = leg["distance"]["value"] / 1609.34
-                    cost = float(round(5.0 + 2.50 * distance_miles, 2))
-                else:
-                    cost = 0.0
-
-                steps_list = []
-                for s in leg["steps"]:
-                    clean_instructions = re.sub('<[^<]+?>', '', s.get("html_instructions", ""))
-
-                    if "transit_details" in s:
-                        details = s["transit_details"]
-                        line_name = details.get("line", {}).get("short_name") or details.get("line", {}).get("name")
-                        stops = details.get("num_stops", 1)
-                        vehicle_type = details.get("line", {}).get("vehicle", {}).get("type", "transit")
-                        steps_list.append(f"Take {vehicle_type} line {line_name} ({stops} stops)")
-
-                        arr_stop = details.get("arrival_stop", {}).get("name")
-                        steps_list.append(f"☕ Break/relax point: rest or transfer at {arr_stop} Station (waiting time ~5 mins)")
-                    else:
-                        steps_list.append(clean_instructions)
-
-                steps_str = " ➔ ".join(steps_list)
-
-                routes.append({
-                    "mode": mode.capitalize() if mode != "cab" else "Taxi / Cab",
-                    "duration_minutes": duration_mins,
-                    "cost_usd": cost,
-                    "steps": steps_str
-                })
+            for route in data.get("routes", []):
+                distance_m = route.get("distance", 0) / 1000.0
+                duration_s = route.get("duration", 0)
+                distance_miles = round(distance_m * 0.621371, 2)
+                duration_minutes = round(duration_s / 60.0, 1)
+                routes.append({"mode": mode.capitalize() if mode != "cab" else "Taxi / Cab", "duration_minutes": duration_minutes, "distance_miles": distance_miles, "steps": [], "geometry": route.get("geometry", "")})
             return routes
     except Exception as exc:
-        sys.stderr.write(f"Error fetching Google Directions: {exc}\n")
+        sys.stderr.write(f"OSRM Directions error: {exc}\n")
         sys.stderr.flush()
         return None
 
-def fetch_google_nearby_recommendations(destination: str) -> dict:
-    import os
-    import sys
-    import httpx
 
-    api_key = os.getenv("GOOGLE_MAPS_API_KEY") or os.getenv("GOOGLE_API_KEY")
-    if not api_key:
-        return None
-
-    coords = resolve_stadium_coords(destination)
-    if not coords:
-        return None
-
-    lat, lng = coords
-    url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
-
+def query_overpass_nearby(lat: float, lng: float) -> dict:
+    """Query Overpass for nearby places."""
+    overpass_url = os.getenv("OSM_OVERPASS_URL", "https://overpass-api.de/api/interpreter")
     categories = {
-        "restaurants": "restaurant",
-        "convenience_stores": "convenience_store",
-        "pharmacies": "pharmacy",
-        "tourist_spots": "tourist_attraction"
+        "restaurants": '"amenity"="restaurant"',
+        "pharmacies": '"amenity"="pharmacy"',
+        "tourist_spots": '"tourism"="attraction"',
+        "convenience_stores": '"shop"="convenience"'
     }
-
     recommendations = {}
     try:
-        with httpx.Client() as client:
-            for cat_key, google_type in categories.items():
-                params = {
-                    "location": f"{lat},{lng}",
-                    "radius": 1500,
-                    "type": google_type,
-                    "key": api_key
-                }
-                resp = client.get(url, params=params, timeout=10.0)
+        with httpx.Client(timeout=15.0) as client:
+            for cat_key, tag in categories.items():
+                q = f"[out:json][timeout:15];{tag}(around:1500,{lat},{lng});out;"
+                resp = client.post(overpass_url, data={"data": q}, timeout=20.0, headers={"User-Agent": "OffsideAI/1.0"})
                 if resp.status_code == 200:
-                    results = resp.json().get("results", [])
+                    data = resp.json()
                     places = []
-                    for p in results[:3]:
-                        places.append({
-                            "name": p.get("name"),
-                            "type": cat_key.replace("_", " ").rstrip("s").capitalize(),
-                            "rating": p.get("rating", 4.0),
-                            "distance_miles": round(0.1 + (0.3 * len(places)), 1),
-                            "address": p.get("vicinity", "")
-                        })
+                    for elem in data.get("elements", [])[:5]:
+                        t = elem.get("tags", {})
+                        c = elem.get("center", {})
+                        places.append({"name": t.get("name", "Unknown"), "type": cat_key.replace("_", " ").rstrip("s").capitalize(), "rating": 4.0, "distance_miles": round(0.1 + (0.3 * len(places)), 1), "address": t.get("addr:street", ""), "lat": c.get("lat"), "lon": c.get("lon")})
                     recommendations[cat_key] = places
-            return recommendations if recommendations else None
+        return recommendations if recommendations else None
     except Exception as exc:
-        sys.stderr.write(f"Error fetching Google Places: {exc}\n")
+        sys.stderr.write(f"Overpass Nearby error: {exc}\n")
         sys.stderr.flush()
         return None
 
@@ -740,7 +448,7 @@ class ServicesMCPServer:
         return [
             {
                 "name": "search_stays",
-                "description": "Find hostel, hotel, sharing room, and Airbnb listings near a specific target match stadium.",
+                "description": "Find hotel and accommodation listings near a stadium using OpenStreetMap data.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -758,7 +466,7 @@ class ServicesMCPServer:
             },
             {
                 "name": "search_hostels",
-                "description": "Find hostel and hotel listings near a specific stadium within a target budget.",
+                "description": "Find hotel listings near a stadium using OpenStreetMap data.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -770,7 +478,7 @@ class ServicesMCPServer:
             },
             {
                 "name": "get_directions",
-                "description": "Calculate transit routes, taxi estimates, and walking directions from an origin to the stadium.",
+                "description": "Calculate driving and walking routes from an origin to the stadium using OSRM.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -783,7 +491,7 @@ class ServicesMCPServer:
             },
             {
                 "name": "get_food_reviews",
-                "description": "Query pre-game pub ratings and food recommendations around a stadium.",
+                "description": "Query nearby restaurants and food places around a stadium using OpenStreetMap.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -848,27 +556,16 @@ class ServicesMCPServer:
                 sys.stderr.write(f"Error querying Airbnb: {e}\n")
                 sys.stderr.flush()
 
-            # 3. Query configured lodging providers only.
-            hbx_api_key = os.environ.get("HBX_API_KEY")
-            liteapi_key = os.environ.get("LITEAPI_KEY")
-
-            other_stays = []
-            if hbx_api_key or liteapi_key:
-                hbx_results = []
-                lite_results = []
-                if hbx_api_key:
-                    try:
-                        hbx_results = query_hotelbeds(lat, lng, check_in, check_out, max_price)
-                    except Exception:
-                        pass
-                if liteapi_key:
-                    try:
-                        lite_results = query_liteapi(lat, lng, check_in, check_out, max_price)
-                    except Exception:
-                        pass
-                other_stays = merge_stays(hbx_results, lite_results)
+            # 3. Query hotels via OpenStreetMap Overpass
+            osm_stays = []
+            try:
+                osm_stays = query_osm_hotels(lat, lng, max_price, accommodation_type)
+            except Exception as e:
+                sys.stderr.write(f"Error querying Overpass: {e}\n")
+                sys.stderr.flush()
 
             # Combine airbnb and other stays (filter out mock airbnb if we have live airbnb data)
+            other_stays = merge_osm_stays(osm_stays)
             if airbnb_stays:
                 other_stays = [s for s in other_stays if s["type"] != "airbnb"]
 
@@ -907,30 +604,48 @@ class ServicesMCPServer:
                 "stadium": stadium,
                 "accommodation_type": accommodation_type,
                 "stays": results,
-                "warnings": [] if results else ["No configured lodging provider returned stays for this stadium."]
+                "warnings": [] if results else ["No hotels found nearby on OpenStreetMap."]
             }
 
         elif tool_name == "search_hostels":
-            stadium = arguments.get("stadium", "").strip().lower()
+            stadium = arguments.get("stadium", "").strip()
             max_price = arguments.get("max_price")
+            lat, lng = 51.5074, -0.1278
+            try:
+                res_lat, res_lng = resolve_stadium_coords(stadium)
+                if res_lat != 0.0 or res_lng != 0.0:
+                    lat, lng = res_lat, res_lng
+            except Exception:
+                pass
 
-            return {
-                "status": "error",
-                "message": "Hostel search requires external API provider configuration (HBX or LiteAPI). No configured provider found."
-            }
+            try:
+                osm_stays = query_osm_hotels(lat, lng, max_price, "hostel")
+                return {
+                    "status": "success",
+                    "stadium": stadium,
+                    "accommodation_type": "hostel",
+                    "stays": osm_stays,
+                    "warnings": [] if osm_stays else ["No hostels found nearby on OpenStreetMap."]
+                }
+            except Exception as e:
+                return {
+                    "status": "error",
+                    "message": f"Hostel search failed: {str(e)}"
+                }
 
         elif tool_name == "get_directions":
             origin = arguments.get("origin")
             destination = arguments.get("destination")
             mode = arguments.get("mode", "transit")
 
-            routes = fetch_google_directions(origin, destination, mode)
-            recs = fetch_google_nearby_recommendations(destination)
+            routes = fetch_osrm_directions(origin, destination, mode)
+            dest_lat, dest_lng = resolve_stadium_coords(destination)
+            recs = query_overpass_nearby(dest_lat, dest_lng) if dest_lat else None
             warnings = []
             if not routes:
-                warnings.append("No configured directions provider returned routes.")
+                warnings.append("No routes found via OSRM.")
             if not recs:
-                warnings.append("No configured nearby places provider returned recommendations.")
+                warnings.append("No nearby places found via OpenStreetMap.")
 
             return {
                 "status": "success",
@@ -945,11 +660,15 @@ class ServicesMCPServer:
         elif tool_name == "get_food_reviews":
             venue = arguments.get("venue", "").strip().lower()
 
-            recs = fetch_google_nearby_recommendations(venue)
+            coords = resolve_stadium_coords(venue)
+            if coords and coords != (51.5549, -0.108436):
+                recs = query_overpass_nearby(coords[0], coords[1])
+            else:
+                recs = None
             if not recs:
                 return {
                     "status": "error",
-                    "message": "Food reviews require external API provider configuration (Google Places API). No configured provider found."
+                    "message": "No nearby places found on OpenStreetMap for this venue."
                 }
 
             return {"status": "success", "venue": arguments.get("venue"), "reviews": recs}
