@@ -1,0 +1,129 @@
+@reference "tailwindcss";
+
+.header-container {
+  @apply sticky top-0 z-50 w-full border-b backdrop-blur-xl;
+  background: var(--header-bg);
+  border-color: var(--header-border);
+}
+
+.header-accent {
+  @apply h-1 w-full bg-gradient-to-r from-emerald-500 via-cyan-400 to-lime-400;
+}
+
+.header-wrapper {
+  @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+.header-inner {
+  @apply flex min-h-16 items-center justify-between gap-4 py-3;
+}
+
+.logo-container {
+  @apply flex items-center gap-2 transition-transform hover:scale-[1.01];
+}
+
+.logo-icon {
+  @apply flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 font-bold text-white shadow-lg shadow-emerald-500/25;
+}
+
+.logo-svg {
+  @apply h-6 w-6 text-white;
+}
+
+.logo-text {
+  @apply bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 bg-clip-text text-xl font-extrabold tracking-tight text-transparent;
+}
+
+.dark .logo-text {
+  @apply bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text;
+}
+
+.nav-menu {
+  @apply hidden md:flex items-center gap-2 rounded-full border p-1 shadow-sm;
+  background: var(--input-bg);
+  border-color: var(--border-light);
+}
+
+.nav-link {
+  @apply rounded-full px-3 py-1.5 text-sm font-semibold transition-colors hover:text-zinc-950 dark:hover:text-white;
+  color: var(--text-secondary);
+}
+
+.dark .nav-link:hover {
+  background: var(--background);
+}
+
+.nav-link:hover {
+  background: #ffffff;
+}
+
+.nav-link-active {
+  @apply rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors;
+}
+
+.header-actions {
+  @apply flex items-center gap-3;
+}
+
+.theme-toggle-btn {
+  @apply flex h-9 w-9 items-center justify-center rounded-xl border transition-all hover:scale-105 cursor-pointer;
+  border-color: var(--border-light);
+  background: var(--input-bg);
+  color: var(--text-secondary);
+}
+
+.theme-toggle-btn:hover {
+  color: var(--foreground);
+}
+
+.dark .theme-toggle-btn {
+  @apply text-amber-400 hover:text-amber-300;
+}
+
+.badge-container {
+  @apply hidden items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ring-1 sm:flex;
+  background: rgba(16, 185, 129, 0.08);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.badge-dot {
+  @apply h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500;
+}
+
+.auth-actions {
+  @apply flex items-center gap-2;
+}
+
+.login-link {
+  @apply rounded-full px-3 py-2 text-sm font-bold transition-colors hover:text-zinc-950 dark:hover:text-white;
+  color: var(--text-secondary);
+}
+
+.signup-link {
+  @apply rounded-full bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:bg-emerald-700 hover:scale-[1.02] active:scale-[0.98];
+}
+
+.dark .signup-link {
+  @apply bg-emerald-500 text-zinc-950 hover:bg-emerald-400 hover:scale-[1.02];
+}
+
+.user-menu {
+  @apply flex items-center gap-2 rounded-full border px-2 py-1;
+  background: var(--input-bg);
+  border-color: var(--border-light);
+}
+
+.user-chip {
+  @apply flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-sm font-black text-white;
+}
+
+.user-name {
+  @apply hidden max-w-28 truncate text-sm font-bold sm:block;
+  color: var(--text-primary);
+}
+
+.logout-button {
+  @apply rounded-full px-3 py-1.5 text-xs font-bold transition-colors hover:text-zinc-950 dark:hover:text-white;
+  color: var(--text-secondary);
+}

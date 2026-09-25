@@ -1,0 +1,349 @@
+@reference "tailwindcss";
+
+.onboarding-page {
+  @apply min-h-screen px-4 py-8 md:py-16 flex items-center justify-center;
+  background: var(--bg-gradient);
+  color: var(--foreground);
+}
+
+.onboarding-shell {
+  @apply w-full max-w-4xl mx-auto flex flex-col gap-8;
+}
+
+.onboarding-card {
+  @apply rounded-3xl border p-6 md:p-10 shadow-2xl backdrop-blur-md relative overflow-hidden;
+  background: var(--card-bg);
+  border-color: var(--card-border);
+  box-shadow: 0 25px 50px -12px var(--card-shadow);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Background grid detail for high premium tech vibe */
+.onboarding-card::before {
+  content: "";
+  @apply absolute inset-0 opacity-[0.015] dark:opacity-[0.03] pointer-events-none;
+  background-image: radial-gradient(var(--text-primary) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* Onboarding Header & Steps */
+.onboarding-header {
+  @apply flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b;
+  border-color: var(--border-light);
+}
+
+.onboarding-title-area {
+  @apply flex-1;
+}
+
+.onboarding-title {
+  @apply text-2xl md:text-3xl font-black tracking-tight uppercase;
+  color: var(--text-primary);
+  background: linear-gradient(135deg, var(--text-primary) 30%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.onboarding-subtitle {
+  @apply mt-1 text-xs md:text-sm font-medium;
+  color: var(--text-secondary);
+}
+
+/* Progress Steps bar */
+.steps-container {
+  @apply flex items-center gap-2 md:gap-4;
+}
+
+.step-indicator {
+  @apply flex items-center gap-2;
+}
+
+.step-number {
+  @apply flex h-7 w-7 items-center justify-center rounded-full text-xs font-black transition-all duration-300;
+}
+
+.step-number-active {
+  @apply bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 scale-110 ring-2 ring-emerald-500/20;
+}
+
+.step-number-pending {
+  @apply border text-zinc-400 bg-transparent;
+  border-color: var(--border-light);
+}
+
+.step-number-done {
+  @apply bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-500/30;
+}
+
+.step-label {
+  @apply text-xs font-extrabold uppercase tracking-wider hidden sm:inline-block;
+  color: var(--text-secondary);
+}
+
+.step-label-active {
+  color: var(--text-primary);
+}
+
+.step-divider {
+  @apply h-px w-6 md:w-12;
+  background-color: var(--border-light);
+}
+
+.step-divider-active {
+  @apply bg-emerald-500;
+}
+
+/* Step content container */
+.step-content-box {
+  @apply py-6 min-h-[400px] flex flex-col gap-6;
+}
+
+/* League Tab Row */
+.league-tab-row {
+  @apply flex overflow-x-auto gap-1.5 p-1 rounded-xl;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-light);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.league-tab-row::-webkit-scrollbar {
+  display: none;
+}
+
+.league-tab-btn {
+  @apply px-3 py-1.5 rounded-lg text-xs font-bold transition-all uppercase tracking-wider cursor-pointer whitespace-nowrap flex-shrink-0;
+  color: var(--text-secondary);
+}
+
+.league-tab-btn-active {
+  @apply bg-emerald-600 text-white shadow-md shadow-emerald-500/10 scale-[1.02];
+}
+
+.league-tab-btn:hover:not(.league-tab-btn-active) {
+  @apply text-emerald-500 bg-white/50 dark:bg-zinc-800/30;
+}
+
+/* Grid Layout for selectable items */
+.onboarding-grid {
+  @apply grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-h-[360px] overflow-y-auto pr-1;
+}
+
+.selectable-card {
+  @apply relative flex flex-col items-center justify-center p-4 rounded-2xl border text-center cursor-pointer select-none transition-all duration-300;
+  background: var(--input-bg);
+  border-color: var(--border-light);
+}
+
+.selectable-card:hover {
+  @apply -translate-y-1 shadow-lg border-emerald-500/40;
+  background: var(--panel-bg);
+}
+
+.selectable-card-active {
+  @apply border-emerald-500 ring-2 ring-emerald-500/20 shadow-emerald-500/5 shadow-md scale-[1.02];
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.selectable-card-active:hover {
+  background: rgba(16, 185, 129, 0.12);
+}
+
+/* Checkmark indicator corner */
+.check-indicator {
+  @apply absolute top-2 right-2 h-5 w-5 rounded-full flex items-center justify-center bg-emerald-600 text-white scale-0 transition-transform duration-300 shadow-md;
+}
+
+.selectable-card-active .check-indicator {
+  @apply scale-100;
+}
+
+/* Crest and Avatar Styles */
+.card-crest-wrapper {
+  @apply h-12 w-12 flex items-center justify-center mb-3 rounded-xl p-1 bg-white shadow-sm border border-zinc-200/50;
+}
+
+.card-crest {
+  @apply h-full w-full object-contain;
+}
+
+.card-crest-fallback {
+  @apply text-emerald-600 font-black text-lg;
+}
+
+.card-title {
+  @apply text-xs md:text-sm font-bold tracking-tight line-clamp-1;
+  color: var(--text-primary);
+}
+
+.card-subtitle {
+  @apply text-[10px] mt-0.5 line-clamp-1;
+  color: var(--text-secondary);
+}
+
+/* Player Selection specific */
+.player-avatar-wrapper {
+  @apply h-14 w-14 rounded-full flex items-center justify-center mb-2 overflow-hidden border-2 bg-zinc-100 dark:bg-zinc-800 border-zinc-200/50;
+}
+
+.selectable-card-active .player-avatar-wrapper {
+  @apply border-emerald-500 shadow-inner;
+}
+
+/* Custom chips input row */
+.custom-input-box {
+  @apply flex flex-col gap-2 mt-4 p-4 rounded-2xl border;
+  background: var(--panel-bg);
+  border-color: var(--border-light);
+}
+
+.chips-row {
+  @apply flex flex-wrap gap-2;
+}
+
+.chip-tag {
+  @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-colors;
+  background: var(--input-bg);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+.chip-tag:hover {
+  @apply border-emerald-500/40;
+}
+
+.chip-delete-btn {
+  @apply hover:text-red-500 cursor-pointer flex items-center justify-center rounded-full p-0.5 transition-colors;
+}
+
+/* Address form and Mock Map */
+.address-grid {
+  @apply grid gap-6 md:grid-cols-[1.1fr_0.9fr] items-start;
+}
+
+.country-grid-select {
+  @apply grid grid-cols-3 gap-2.5 max-h-[145px] overflow-y-auto pr-1;
+}
+
+.country-pill {
+  @apply flex items-center justify-center gap-2 p-2 rounded-xl border text-xs font-bold cursor-pointer transition-all;
+  background: var(--input-bg);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+.country-pill:hover {
+  @apply border-emerald-500/40;
+  background: var(--panel-bg);
+}
+
+.country-pill-active {
+  @apply border-emerald-500 ring-2 ring-emerald-500/20;
+  background: rgba(16, 185, 129, 0.08);
+}
+
+/* Mock Map Overlay Graphic */
+.mock-map-card {
+  @apply rounded-2xl border p-4 flex flex-col gap-3 relative overflow-hidden h-[280px];
+  background: var(--panel-bg);
+  border-color: var(--border-light);
+}
+
+.mock-map-canvas {
+  @apply flex-1 relative rounded-xl overflow-hidden border flex items-center justify-center;
+  background: radial-gradient(circle at center, #10b981 1px, transparent 1px) 0 0/16px 16px, #0e1117;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.mock-map-radar {
+  @apply absolute h-36 w-36 rounded-full border border-emerald-500/10 pointer-events-none;
+  animation: radar-pulse 3s infinite linear;
+}
+
+.mock-map-field-lines {
+  @apply absolute inset-4 border border-emerald-500/20 rounded-md pointer-events-none;
+}
+
+.mock-map-center-circle {
+  @apply absolute h-16 w-16 rounded-full border border-emerald-500/20 pointer-events-none;
+}
+
+.map-pin-pulse {
+  @apply absolute h-5 w-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center shadow-lg shadow-emerald-500/50 z-10;
+  animation: float 2.5s ease-in-out infinite;
+}
+
+.map-pin-pulse::after {
+  content: "";
+  @apply absolute h-10 w-10 rounded-full border-2 border-emerald-500/40;
+  animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+.mock-map-meta {
+  @apply flex flex-col gap-1 z-10 text-[10px] font-mono text-emerald-400 bg-black/55 backdrop-blur-sm p-2 rounded-lg border border-emerald-500/20;
+}
+
+/* Navigation Button Row */
+.onboarding-nav {
+  @apply flex items-center justify-between pt-6 border-t mt-4;
+  border-color: var(--border-light);
+}
+
+.btn-secondary {
+  @apply px-5 py-2.5 rounded-xl border text-xs font-bold transition-all uppercase tracking-wider cursor-pointer hover:border-emerald-500/40;
+  background: var(--input-bg);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+.btn-primary {
+  @apply px-6 py-2.5 rounded-xl bg-emerald-600 text-xs font-black text-white shadow-lg shadow-emerald-500/20 transition-all hover:bg-emerald-500 cursor-pointer flex items-center gap-2 active:scale-[0.98];
+}
+
+/* Animations */
+@keyframes radar-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.35);
+    opacity: 1;
+  }
+  80%, 100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+/* Custom scrollbars */
+.onboarding-grid::-webkit-scrollbar,
+.country-grid-select::-webkit-scrollbar {
+  @apply w-1.5;
+}
+
+.onboarding-grid::-webkit-scrollbar-track,
+.country-grid-select::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.onboarding-grid::-webkit-scrollbar-thumb,
+.country-grid-select::-webkit-scrollbar-thumb {
+  @apply rounded bg-zinc-300 dark:bg-zinc-700/50;
+}

@@ -1,0 +1,117 @@
+openapi: 3.0.3
+info:
+  title: Globus 2026 Logistics Tool Bridge
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local FastAPI development server
+  - url: https://REPLACE_WITH_CLOUD_RUN_URL
+    description: Cloud Run production server
+paths:
+  /api/v1/logistics/fans/{fan_id}:
+    get:
+      operationId: getFanProfile
+      summary: Get fan logistics profile
+      parameters:
+        - name: fan_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Fan profile
+  /api/v1/logistics/transport/options:
+    get:
+      operationId: getTransportOptions
+      summary: Get ranked transport options
+      parameters:
+        - name: fan_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: venue_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Transport options
+  /api/v1/logistics/inventory/update:
+    post:
+      operationId: updateInventory
+      summary: Update venue inventory after approval
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [venue_id, item, delta, reason, approved]
+              properties:
+                venue_id:
+                  type: string
+                item:
+                  type: string
+                delta:
+                  type: integer
+                reason:
+                  type: string
+                approved:
+                  type: boolean
+      responses:
+        "200":
+          description: Inventory update result
+  /api/v1/logistics/incidents/escalate:
+    post:
+      operationId: escalateIncident
+      summary: Escalate an operations incident after approval
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [venue_id, severity, category, description, owner, approved]
+              properties:
+                venue_id:
+                  type: string
+                severity:
+                  type: string
+                  enum: [Critical, High, Medium, Low]
+                category:
+                  type: string
+                description:
+                  type: string
+                owner:
+                  type: string
+                approved:
+                  type: boolean
+      responses:
+        "200":
+          description: Incident escalation result
+  /api/v1/logistics/action-log:
+    post:
+      operationId: logAgentAction
+      summary: Log an agent decision or completed action
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action_type, summary, actor]
+              properties:
+                action_type:
+                  type: string
+                summary:
+                  type: string
+                actor:
+                  type: string
+                metadata:
+                  type: object
+      responses:
+        "200":
+          description: Action log result

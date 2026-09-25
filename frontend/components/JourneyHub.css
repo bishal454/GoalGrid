@@ -1,0 +1,218 @@
+@reference "tailwindcss";
+
+.advert-container {
+  @apply w-full rounded-2xl border p-6 transition-all duration-500 relative overflow-hidden flex flex-col justify-between backdrop-blur-lg;
+  background: var(--card-bg);
+  border-color: var(--card-border);
+  box-shadow: 0 20px 25px -5px var(--card-shadow);
+  min-height: 520px;
+}
+
+/* Header Slide Switcher */
+.advert-tabs {
+  @apply flex gap-1.5 p-1 rounded-xl mb-6 border;
+  border-color: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.advert-tab-btn {
+  @apply flex-1 rounded-lg py-2.5 text-[11px] font-black text-center uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5;
+  color: var(--text-secondary);
+}
+
+.advert-tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(16, 185, 129, 0.04);
+}
+
+.advert-tab-btn-active {
+  @apply flex-1 rounded-lg bg-emerald-600 py-2.5 text-[11px] font-black text-white uppercase tracking-wider text-center shadow-md flex items-center justify-center gap-1.5 cursor-pointer;
+}
+
+/* Slide Shell */
+.advert-slide {
+  @apply flex-1 flex flex-col justify-between h-full;
+  animation: hubFadeIn 0.4s ease-out forwards;
+}
+
+/* Logo and Main Title */
+.advert-header {
+  @apply flex flex-col items-center text-center mb-6;
+}
+
+.advert-brand {
+  @apply flex items-center gap-2 mb-2;
+}
+
+.advert-logo-icon {
+  @apply w-7 h-7 text-emerald-500 flex-shrink-0;
+}
+
+.advert-logo-text {
+  @apply text-base font-black tracking-widest text-zinc-950 dark:text-white uppercase;
+}
+
+.advert-title {
+  @apply text-lg sm:text-xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100 max-w-[90%] leading-snug mt-1;
+}
+
+.advert-subtitle {
+  @apply text-[10px] font-black tracking-widest text-emerald-500 uppercase mt-0.5;
+}
+
+/* Feature 2x2 Grid */
+.advert-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6;
+}
+
+.advert-card {
+  @apply p-4 rounded-xl border transition-all duration-300 text-left flex flex-col gap-2.5 hover:scale-[1.01];
+  background: rgba(255, 255, 255, 0.01);
+  border-color: rgba(255, 255, 255, 0.03);
+}
+
+.advert-card:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.advert-card-icon-wrap {
+  @apply w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center flex-shrink-0;
+}
+
+.advert-card-icon {
+  @apply w-4 h-4;
+}
+
+.advert-card-body {
+  @apply flex flex-col gap-1;
+}
+
+.advert-card-title {
+  @apply text-[10.5px] font-black tracking-wider text-zinc-900 dark:text-white uppercase leading-tight;
+}
+
+.advert-card-desc {
+  @apply text-[10.5px] leading-relaxed text-zinc-400 font-semibold;
+}
+
+/* Slide 3 Unified Portal Layout */
+.advert-unified-row {
+  @apply grid grid-cols-1 sm:grid-cols-7 gap-4 items-center justify-between relative py-2 mb-6;
+}
+
+.advert-unified-col {
+  @apply sm:col-span-3 rounded-xl border p-4 transition-all duration-300 hover:border-emerald-500/20 text-center flex flex-col items-center gap-3 relative z-10;
+  background: rgba(255, 255, 255, 0.01);
+  border-color: rgba(255, 255, 255, 0.03);
+}
+
+.advert-unified-col:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.advert-col-title {
+  @apply text-[11px] font-black uppercase tracking-widest text-emerald-500 border-b pb-1.5 w-full;
+}
+
+.pulsing-soccer-ball {
+  @apply w-12 h-12 text-emerald-500 animate-pulse;
+}
+
+.advert-col-text {
+  @apply text-[10.5px] text-zinc-400 font-semibold leading-relaxed;
+}
+
+/* Center AI Agent Hub */
+.advert-agent-hub {
+  @apply sm:col-span-1 flex flex-col items-center justify-center relative h-20 sm:h-auto;
+}
+
+.advert-agent-circle {
+  @apply w-14 h-14 rounded-full flex items-center justify-center relative z-20 border shadow-lg cursor-pointer transition-all duration-300;
+  background: var(--panel-bg);
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+}
+
+.advert-agent-circle:hover {
+  @apply scale-105;
+  border-color: rgba(16, 185, 129, 0.8);
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.5);
+}
+
+.advert-agent-icon {
+  @apply w-7 h-7 text-emerald-400;
+}
+
+.advert-agent-text {
+  @apply text-[9px] font-black uppercase tracking-wider text-emerald-400 text-center mt-2.5 max-w-[120px] leading-tight;
+}
+
+/* SVG Connector Lines */
+.advert-lines-svg {
+  @apply absolute left-0 right-0 top-1/2 -translate-y-1/2 w-full h-12 pointer-events-none hidden sm:block z-0;
+}
+
+.advert-pulse-line {
+  stroke: rgba(16, 185, 129, 0.6);
+  stroke-dasharray: 8 16;
+  animation: lineDashPulse 1.8s linear infinite;
+}
+
+/* Vertical side badge */
+.advert-side-vertical {
+  @apply absolute right-1.5 top-1/2 -translate-y-1/2 select-none pointer-events-none text-[8.5px] font-black uppercase tracking-widest text-zinc-600 hidden sm:block;
+  writing-mode: vertical-rl;
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* Button wrappers */
+.advert-footer-single {
+  @apply mt-auto w-full pt-4 border-t;
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.advert-footer-dual {
+  @apply mt-auto w-full grid grid-cols-2 gap-3 pt-4 border-t;
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.advert-btn {
+  @apply w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider py-3 rounded-xl transition-all duration-200 shadow-lg shadow-emerald-600/10 hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer;
+}
+
+.advert-btn-outline {
+  @apply w-full bg-transparent hover:bg-emerald-600/10 text-emerald-400 font-black text-xs uppercase tracking-wider py-3 rounded-xl transition-all duration-200 border border-emerald-500/30 hover:border-emerald-500 hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer;
+}
+
+/* Slider Controls Indicators */
+.advert-indicator-dots {
+  @apply flex gap-1.5 justify-center items-center mt-4;
+}
+
+.advert-dot {
+  @apply w-2 h-2 rounded-full transition-all duration-300 bg-zinc-700 cursor-pointer;
+}
+
+.advert-dot-active {
+  @apply w-5 h-2 rounded-full transition-all duration-300 bg-emerald-500 cursor-pointer;
+}
+
+/* Keyframes */
+@keyframes hubFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.99) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes lineDashPulse {
+  to {
+    stroke-dashoffset: -24;
+  }
+}

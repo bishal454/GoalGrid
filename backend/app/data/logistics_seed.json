@@ -1,0 +1,104 @@
+{
+  "fans": [
+    {
+      "fan_id": "fan_001",
+      "name": "Ava Patel",
+      "current_location": "Union Station Los Angeles",
+      "ticket_id": "TKT-SOFI-M3-0421",
+      "venue_id": "sofi_stadium",
+      "budget_usd": 45,
+      "accessibility_needs": ["step-free route"],
+      "preferred_modes": ["shuttle", "public_transit", "rideshare"]
+    },
+    {
+      "fan_id": "fan_002",
+      "name": "Mateo Rivera",
+      "current_location": "Downtown Toronto",
+      "ticket_id": "TKT-BMO-M2-0888",
+      "venue_id": "bmo_field",
+      "budget_usd": 30,
+      "accessibility_needs": [],
+      "preferred_modes": ["public_transit", "walk"]
+    }
+  ],
+  "venues": [
+    {
+      "venue_id": "sofi_stadium",
+      "name": "SoFi Stadium",
+      "city": "Los Angeles",
+      "emergency_access_routes": ["Prairie Ave", "Century Blvd"],
+      "fan_ingress_peak": "T-90 to T-20",
+      "capacity": 70240
+    },
+    {
+      "venue_id": "bmo_field",
+      "name": "BMO Field",
+      "city": "Toronto",
+      "emergency_access_routes": ["Princes Blvd", "Lake Shore Blvd W"],
+      "fan_ingress_peak": "T-75 to T-15",
+      "capacity": 30000
+    }
+  ],
+  "transport_options": [
+    {
+      "option_id": "shuttle_sofi_01",
+      "venue_id": "sofi_stadium",
+      "mode": "shuttle",
+      "origin_area": "Union Station Los Angeles",
+      "eta_minutes": 48,
+      "cost_usd": 18,
+      "risk": "Medium",
+      "availability": "available"
+    },
+    {
+      "option_id": "metro_sofi_01",
+      "venue_id": "sofi_stadium",
+      "mode": "public_transit",
+      "origin_area": "Union Station Los Angeles",
+      "eta_minutes": 64,
+      "cost_usd": 4,
+      "risk": "Low",
+      "availability": "available"
+    },
+    {
+      "option_id": "ride_sofi_01",
+      "venue_id": "sofi_stadium",
+      "mode": "rideshare",
+      "origin_area": "Union Station Los Angeles",
+      "eta_minutes": 38,
+      "cost_usd": 52,
+      "risk": "High",
+      "availability": "limited"
+    },
+    {
+      "option_id": "ttc_bmo_01",
+      "venue_id": "bmo_field",
+      "mode": "public_transit",
+      "origin_area": "Downtown Toronto",
+      "eta_minutes": 28,
+      "cost_usd": 3,
+      "risk": "Low",
+      "availability": "available"
+    }
+  ],
+  "inventory": [
+    {
+      "venue_id": "sofi_stadium",
+      "item": "water_bottles",
+      "quantity": 12500,
+      "reorder_threshold": 9000
+    },
+    {
+      "venue_id": "sofi_stadium",
+      "item": "meal_kits",
+      "quantity": 4200,
+      "reorder_threshold": 3500
+    },
+    {
+      "venue_id": "bmo_field",
+      "item": "water_bottles",
+      "quantity": 6200,
+      "reorder_threshold": 5000
+    }
+  ]
+}

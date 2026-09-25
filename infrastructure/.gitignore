@@ -1,0 +1,64 @@
+# Infrastructure and DevOps ignores
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# Kubernetes
+kube-config
+kubeconfig
+*.key
+*.crt
+secrets/
+
+# CloudBuild
+cloudbuild.override.yaml
+
+# General
+.DS_Store
+Thumbs.db
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Credentials
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
+.credentials
+credentials.json

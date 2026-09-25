@@ -1,0 +1,91 @@
+@reference "tailwindcss";
+
+.auth-page {
+  @apply min-h-screen px-4 py-10;
+  background: var(--bg-gradient);
+  color: var(--foreground);
+}
+
+.auth-shell {
+  @apply mx-auto grid min-h-[calc(100vh-5rem)] max-w-6xl items-center gap-8 lg:grid-cols-[1.05fr_0.95fr];
+}
+
+.auth-brand-panel {
+  @apply hidden lg:block;
+}
+
+.auth-brand-mark {
+  @apply mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-500 to-cyan-400 text-xl font-black text-white shadow-xl shadow-emerald-500/20;
+}
+
+.auth-eyebrow {
+  @apply text-xs font-bold uppercase tracking-[0.25em] text-emerald-500;
+}
+
+.auth-heading {
+  @apply mt-3 max-w-xl text-5xl font-black leading-tight tracking-tight;
+  color: var(--text-primary);
+}
+
+.auth-copy {
+  @apply mt-4 max-w-lg text-sm leading-6;
+  color: var(--text-secondary);
+}
+
+.auth-card {
+  @apply rounded-3xl border p-6 shadow-2xl backdrop-blur md:p-8;
+  background: var(--card-bg);
+  border-color: var(--card-border);
+  box-shadow: 0 25px 50px -12px var(--card-shadow);
+}
+
+.auth-card-title {
+  @apply text-2xl font-black tracking-tight;
+  color: var(--text-primary);
+}
+
+.auth-card-subtitle {
+  @apply mt-1 text-sm;
+  color: var(--text-secondary);
+}
+
+.auth-form {
+  @apply mt-6 space-y-4;
+}
+
+.auth-field {
+  @apply flex flex-col gap-1.5;
+}
+
+.auth-label {
+  @apply text-xs font-bold uppercase tracking-wider;
+  color: var(--text-secondary);
+}
+
+.auth-input {
+  @apply w-full rounded-xl border px-4 py-3 text-sm font-medium outline-none transition-colors placeholder:text-zinc-400 focus:border-emerald-500;
+  background: var(--input-bg);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+.dark .auth-input:focus {
+  background: var(--background);
+}
+
+.auth-submit {
+  @apply w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-emerald-500/20 transition-all hover:bg-emerald-500 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 disabled:active:scale-100;
+}
+
+.auth-error {
+  @apply rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700;
+}
+
+.auth-switch {
+  @apply mt-5 text-center text-sm;
+  color: var(--text-secondary);
+}
+
+.auth-link {
+  @apply font-bold text-emerald-500 hover:text-emerald-400;
+}

@@ -1,0 +1,186 @@
+@reference "tailwindcss";
+
+/* Premium Standing Tables Card styling */
+.standings-card-dark {
+  display: flex;
+  flex-direction: column;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 10px 15px -3px var(--card-shadow);
+  backdrop-filter: blur(16px);
+  height: 520px;
+}
+
+.standings-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-light);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+@media (min-width: 640px) {
+  .standings-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.standings-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+}
+
+/* Scrollable tabs list */
+.standings-tabs-container {
+  display: flex;
+  gap: 0.375rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.standings-tab-btn {
+  background: var(--input-bg);
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.standings-tab-btn:hover {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--text-primary);
+}
+
+.standings-tab-btn.active {
+  background: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+}
+
+/* Standings body */
+.standings-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.standings-loading,
+.standings-error,
+.standings-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  color: #a1a1aa;
+}
+
+.standings-table-wrapper {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.standings-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.standings-table th {
+  position: sticky;
+  top: 0;
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  z-index: 10;
+  padding: 0.75rem 0.5rem;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.standing-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background-color 0.15s ease;
+}
+
+.standing-row:hover {
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.dark .standing-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.standing-row td {
+  padding: 0.5rem 0.5rem;
+  vertical-align: middle;
+}
+
+/* Qualification left border highlights */
+.top-four-border {
+  border-left: 2px solid #3b82f6;
+}
+
+.relegation-border {
+  border-left: 2px solid #ef4444;
+}
+
+/* Position Badges */
+.pos-badge {
+  display: inline-flex;
+  width: 1.25rem;
+  height: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  font-size: 10px;
+}
+
+.pos-top {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.pos-low {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.pos-normal {
+  color: #a1a1aa;
+}
+
+/* Team Name */
+.team-name {
+  transition: color 0.2s ease;
+}
+
+.standing-row:hover .team-name {
+  @apply text-zinc-950 dark:text-white;
+}
+
+/* Standings footer */
+.standings-footer {
+  padding: 0.625rem 1.25rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid var(--border-light);
+}

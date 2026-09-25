@@ -1,0 +1,33 @@
+tools:
+  - name: get_fan_profile
+    method: GET
+    path: /api/v1/logistics/fans/{fan_id}
+    approval_required: false
+    purpose: Retrieve fan budget, ticket, location, accessibility, and preference state.
+  - name: get_transport_options
+    method: GET
+    path: /api/v1/logistics/transport/options
+    approval_required: false
+    purpose: Retrieve ranked transport options for a fan and venue.
+  - name: update_inventory
+    method: POST
+    path: /api/v1/logistics/inventory/update
+    approval_required: true
+    purpose: Move or adjust vendor inventory at a venue.
+  - name: escalate_incident
+    method: POST
+    path: /api/v1/logistics/incidents/escalate
+    approval_required: true
+    purpose: Escalate safety, security, medical, or transport incidents.
+  - name: log_agent_action
+    method: POST
+    path: /api/v1/logistics/action-log
+    approval_required: false
+    purpose: Persist decision and action history.
+approval_policy:
+  state_changing_actions_require_user_approval: true
+  approval_field: approved
+  default_approved_value: false
+data_ownership:
+  source_of_truth: MongoDB Atlas or FastAPI bridge store
+  local_seed_data: backend/app/data/logistics_seed.json

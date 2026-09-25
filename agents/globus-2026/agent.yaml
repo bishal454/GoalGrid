@@ -1,0 +1,26 @@
+name: Globus 2026
+display_name: "Globus 2026 - Autonomous World Cup Logistics Agent"
+agent_type: goal_oriented
+reasoning_engine:
+  provider: vertex_ai
+  model_name: Gemini 3 Pro
+  model_id: gemini-3-pro-preview
+domain: world_cup_2026_logistics
+primary_goal: >
+  Coordinate World Cup 2026 logistics workflows across fans, teams, transport,
+  venues, vendors, inventory, incidents, and operational contingencies.
+behavior:
+  style: operations_planner
+  hidden_reasoning: true
+  expose_chain_of_thought: false
+  visible_reasoning: concise_operational_rationale
+  approval_required_for_state_changes: true
+tools:
+  openapi_spec: tools/openapi.yaml
+  manifest: tools/tool-manifest.yaml
+data_sources:
+  grounding_bucket: gs://REPLACE_WITH_BUCKET/world-cup-2026-grounding
+  operational_state: MongoDB Atlas via MCP or FastAPI bridge
+deployment:
+  local_backend: http://localhost:8080
+  cloud_run_backend: https://REPLACE_WITH_CLOUD_RUN_URL
